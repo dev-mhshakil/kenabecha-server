@@ -179,19 +179,23 @@ async function run() {
       const query = {};
       const result = await advertiseCollection
         .find(query)
-        .sort({ "data.adsDate": 1 })
+        .sort({ date: 1 })
         .toArray();
       res.send(result);
     });
 
     app.post("/advertise", async (req, res) => {
       const id = req.body.id;
-      const date = {
-        adsDate: req.body.date,
-      };
+      const date = req.body.date;
       const query = { _id: ObjectId(id) };
       const result = await mobilesCollection.findOne(query);
       const adResult = await advertiseCollection.insertOne({ result, date });
+      const updateDoc = {
+        $set: {
+          advertise: true,
+        },
+      };
+      const updateResult = await mobilesCollection.updateOne(query, updateDoc);
       res.send(adResult);
     });
 
@@ -314,6 +318,7 @@ async function run() {
         filter,
         updatedDoc
       );
+
       // console.log("updated result", updatedResult);
       res.send(result);
     });
