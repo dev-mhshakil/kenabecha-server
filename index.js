@@ -2,9 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
-const stripe = require("stripe")(
-  "sk_test_51M66MUG6ZZcJX2lVaINtf8DDgDo8oZeW0Zj3205xe6vre4XkinCQIwLclLGRFhdBi6qv72D0MbqJ1FyocQz9QENl00X3KP02Hp"
-);
+const stripe = require("stripe")(process.env.STRIPE_SK);
 
 const jwt = require("jsonwebtoken");
 const app = express();
@@ -91,12 +89,17 @@ async function run() {
     app.post("/sellers", async (req, res) => {
       const email = req.body.email;
       const filter = { email: email };
+      const sellerEmail = { sellerEmail: email };
       const updateDoc = {
         $set: {
           verified: true,
         },
       };
       const result = await usersCollection.updateOne(filter, updateDoc);
+      const updatedResult = await mobilesCollection.updateOne(
+        sellerEmail,
+        updateDoc
+      );
       res.send(result);
     });
 
@@ -126,15 +129,14 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/categories", async (req, res) => {
-      const filter = { company };
-      const result = await mobilesCollection.find(filter).toArray();
-      res.send(result);
-    });
+    // app.get("/categories", async (req, res) => {
+    //   const filter = { company };
+    //   const result = await mobilesCollection.find(filter).toArray();
+    //   res.send(result);
+    // });
 
     app.get("/categories/:name", async (req, res) => {
       const name = req.params.name;
-      // console.log(name);
       const filter = { company: name };
       // console.log(filter);
       const result = await mobilesCollection.find(filter).toArray();
@@ -261,6 +263,13 @@ async function run() {
       // console.log(email);
       const filter = { buyerEmail: email };
       const result = await bookingsCollection.find(filter).toArray();
+      res.send(result);
+    });
+
+    app.delete("/orders", async (req, res) => {
+      const id = req.body.id;
+      const query = { _id: ObjectId(id) };
+      const result = await bookingsCollection.deleteOne(query);
       res.send(result);
     });
 
