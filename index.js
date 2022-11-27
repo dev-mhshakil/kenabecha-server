@@ -213,27 +213,13 @@ async function run() {
     app.get("/bookings/:id", async (req, res) => {
       const id = req.params.id;
       // console.log(id);
-      const query = { _id: ObjectId(id) };
+      const query = { mobileId: id };
       const result = await bookingsCollection.findOne(query);
       res.send(result);
     });
 
-    app.put("/bookings/:id", async (req, res) => {
-      const id = req.params.id;
+    app.post("/bookings/:id", async (req, res) => {
       const booking = req.body;
-      // const bookingEmail = req.body.buyerEmail;
-      // console.log(bookingEmail);
-      // console.log(req.body);
-
-      const filter = { _id: id };
-      const options = { upsert: true };
-      const updateDoc = {
-        $set: {
-          booking,
-          booked: true,
-          id: id,
-        },
-      };
       const result = await bookingsCollection.insertOne(booking);
       res.send(result);
     });
@@ -305,7 +291,7 @@ async function run() {
       // console.log(payment);
       const result = await paymentsCollection.insertOne(payment);
       const id = payment.orderId;
-      const filter = { _id: ObjectId(id) };
+      const filter = { mobileId: id };
       // console.log("id:", id);
       // console.log(filter);
       const updatedDoc = {
@@ -316,6 +302,12 @@ async function run() {
       };
       const updatedResult = await bookingsCollection.updateOne(
         filter,
+        updatedDoc
+      );
+
+      const mobileFilter = { _id: ObjectId(id) };
+      const mobileUpdate = await mobilesCollection.updateOne(
+        mobileFilter,
         updatedDoc
       );
 
